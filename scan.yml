@@ -1,0 +1,50 @@
+---
+- name: Create EventBridge Rule
+  hosts: localhost
+  gather_facts: no
+  
+  tasks:
+    - name: get infor
+      amazon.aws.aws_caller_info:
+      register: caller_info
+    - name: set variable
+      set_fact:
+        caller_infor_acc: "{{ caller_info['account'] }}"
+
+    - name: print 
+      debug:
+        var: caller_infor_acc
+    - name: list EC2 with test tag
+      ec2_instance_facts:
+        region: "ap-southeast-1"
+        filters:
+          "tag:Name": "test"
+      register: result
+    - name: set variable
+      set_fact:
+        instances: "{{ result['instances'] | json_query('[*].instance_id') }}"
+    - name: print 
+      debug:
+        var: instances
+
+    # - debug:
+    #     msg: my EC2 "{{ ec2_list }}"
+    
+    # - name: Create EventBridge Rule 2
+    #   cloudwatchevent_rule:
+    #     name: MyCronTask
+    #     schedule_expression: "cron(0 20 * * ? *)"
+    #     description: Run my scheduled task
+    #     targets:
+    #       - id: MyTargetId1
+    #         arn: arn:aws:lambda:ap-southeast-1:398692602192:function:AutomateCentralDashboard
+    #         input: '{"foo": "bar"}'
+    # - name: Create cloudwatchevent_rule
+    #   cloudwatchevent_rule:
+    #   name: MyCronTask
+    #   schedule_expression: "cron(0 20 * * ? *)"
+    #   description: Run my scheduled task
+    #   targets:
+    #     - id: MyTargetId
+    #       arn: arn:aws:lambda:us-east-1:123456789012:function:MyFunction
+   
